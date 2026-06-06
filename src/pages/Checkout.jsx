@@ -13,13 +13,14 @@ import useCartStore from '../store/cartStore'
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
 
 // Inner form component
-function CheckoutForm({ total }) {
+function CheckoutForm({ total, items }) {
   const stripe = useStripe()
   const elements = useElements()
   const navigate = useNavigate()
   const { clearCart } = useCartStore()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [email, setEmail] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -30,33 +31,56 @@ function CheckoutForm({ total }) {
 
     const { error } = await stripe.confirmPayment({
       elements,
-      confirmParams: {
-        return_url: window.location.origin + '/order-success',
-      },
+      confirmParams: { return_url: window.location.origin + '/order-success' },
       redirect: 'if_required',
     })
 
     if (error) {
       setError(error.message)
       setLoading(false)
-    } else {
-      clearCart()
-      navigate('/order-success')
+      return
     }
+
+    // Send confirmation email
+    if (email) {
+      await fetch('http://localhost:4000/send-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          items,
+          total,
+          orderId: Math.random().toString(36).substring(2, 10).toUpperCase(),
+        }),
+      })
+    }
+
+    clearCart()
+    navigate('/order-success')
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Email field */}
       <div className="bg-[#080F17] rounded-2xl border border-white/5 p-6">
-        <h2 className="font-display text-base font-500 text-white mb-5">
-          Payment details
-        </h2>
+        <h2 className="font-display text-base font-500 text-white mb-5">Contact</h2>
+        <input
+          type="email"
+          placeholder="Email address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="w-full bg-[#0D1B2A] border border-white/10 rounded-xl px-4 py-3 text-sm font-body text-white placeholder-white/20 focus:outline-none focus:border-amber-400/40 transition-colors"
+        />
+      </div>
+
+      {/* Stripe payment element */}
+      <div className="bg-[#080F17] rounded-2xl border border-white/5 p-6">
+        <h2 className="font-display text-base font-500 text-white mb-5">Payment details</h2>
         <PaymentElement />
       </div>
 
-      {error && (
-        <p className="text-sm text-red-400 font-body">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-400 font-body">{error}</p>}
 
       <button
         type="submit"
@@ -138,7 +162,7 @@ export default function Checkout() {
                   },
                 }}
               >
-                <CheckoutForm total={total} />
+                <CheckoutForm total={total} items={items} />
               </Elements>
             ) : (
               <div className="h-48 flex items-center justify-center text-white/30 font-body text-sm">
