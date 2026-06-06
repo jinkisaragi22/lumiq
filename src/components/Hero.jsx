@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import { products } from "../data/products";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
@@ -9,6 +10,8 @@ const fadeUp = (delay = 0) => ({
 });
 
 export default function Hero() {
+  const featuredProduct = products[0];
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-[#04080F]">
       {/* Background glow */}
@@ -97,8 +100,8 @@ export default function Hero() {
             {/* Center */}
             <div className="absolute inset-12 rounded-full bg-[#0D1B2A] border border-amber-400/20 flex items-center justify-center glow-amber">
               <img
-                src="/public/images/desk-lamp-pro.jpg"
-                alt="Lumiq Desk Pro"
+                src={featuredProduct.image}
+                alt={featuredProduct.name}
                 className="w-full h-full object-cover rounded-full shadow-lg"
               />
             </div>
