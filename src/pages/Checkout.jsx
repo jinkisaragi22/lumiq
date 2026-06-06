@@ -43,7 +43,7 @@ function CheckoutForm({ total, items }) {
 
     // Send confirmation email
     if (email) {
-      await fetch('http://localhost:4000/send-confirmation', {
+      await fetch('/api/send-confirmation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -111,7 +111,7 @@ export default function Checkout() {
   useEffect(() => {
     if (items.length === 0) return
 
-    fetch('http://localhost:4000/create-payment-intent', {
+    fetch('/api/create-payment-intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount: total }),
